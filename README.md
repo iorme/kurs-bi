@@ -1,6 +1,9 @@
 kurs-bi
 =======
 
-kurs dari bank indonesia = http://www.bi.go.id/web/en/Moneter/Kurs+Bank+Indonesia/Kurs+Transaksi/
+kurs dari bank indonesia = http://www.bi.go.id/id/moneter/informasi-kurs/transaksi-bi/Default.aspx
 
-phpQuery = https://code.google.com/p/phpquery/
+menggunakan 
+- Guzzle
+- Symfony DomCrawler
+- Symfony CssSelector

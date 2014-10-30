@@ -1,26 +1,36 @@
 <?php
-require('./phpQuery/phpQuery.php');
+require "vendor/autoload.php";
 
-$html = @file_get_contents('http://www.bi.go.id/web/en/Moneter/Kurs+Bank+Indonesia/Kurs+Transaksi/');
-// $html = @file_get_contents('http://localhost/rate/tes.html');
+use GuzzleHttp\Client;
+use Symfony\Component\DomCrawler\Crawler;
+use \RuntimeException;
 
-phpQuery::newDocumentHTML($html, $charset = 'utf-8'); 
-$tables = pq('table[bgcolor="#cccccc"]');
-$data = array();
+$url = "http://www.bi.go.id/id/moneter/informasi-kurs/transaksi-bi/Default.aspx";
+// $url = "http://localhost/kurs/kurs.html";
 
-foreach ($tables as $table){
-	$i = 0;
-  	foreach(pq($table)->find('tr') as $tr) {
-  		if($i > 1) {
-	  		$d = array();
-	  		foreach (pq($tr)->find('td') as $td) {
-	  			$d[] = pq($td)->text();
-	  		}
-	  		$data[] = array('kurs' => $d);
-	  	}
-  		$i++;
-	}
-}
-phpQuery::unloadDocuments();
-echo "<pre>";print_r($data);echo "</pre>";die;
+$client = new Client();
+$request = $client->createRequest('GET', $url);
+$response = $client->send($request);
+
+$data = [];
+$crawler = new Crawler((string)$response->getBody(true));
+$crawler->filter('table#ctl00_PlaceHolderMain_biWebKursTransaksiBI_GridView1 > tr')
+	->each(
+			function(Crawler $node, $i) use(& $data) { 
+				$d = [];
+				if($i > 0) {
+					$node->filter('td')->each(function(Crawler $item, $j) use(&$data, &$d) {
+						if($j == 0)
+							$d['mata_uang'] = $item->text();
+						if($j == 2)
+							$d['jual'] = $item->text();
+						if($j == 3)
+							$d['beli'] = $item->text();
+					});
+					$data[] = $d;
+				}
+			}
+		);
+
+echo json_encode($data);
 ?>
